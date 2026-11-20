@@ -7,7 +7,8 @@
 - [x] Inert validated device profile manifests.
 - [x] Read-only JSONL/ESP32, Modbus TCP/RTU and SCPI protocol foundations.
 - [x] Validated telemetry ingestion, SQLite retention (10,000 samples) and history query API.
-- [ ] Physical sensor polling and protocol-to-telemetry adapters.
+- [x] Manually triggered read-only Modbus TCP and ESP32 JSONL to telemetry bridge (explicit mappings only).
+- [ ] Scheduled polling, profile-bound device identity and Modbus RTU bridge.
 - [ ] Live read-only device API integration after verified identity/profile binding.
 - [ ] Telemetry threshold rules, alert delivery and dashboard charts.
 - [ ] Signed profiles, trust/key rotation and verified hardware identity binding.
