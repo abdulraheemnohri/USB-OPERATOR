@@ -7,6 +7,7 @@ class CommandService:
     def plan(self,request:CommandRequest):
         device=self.registry.get(request.device_id)
         if not device: raise LookupError("Device not found. Run discovery first.")
+        if request.action not in device.capabilities: raise PermissionError("Device profile does not declare this capability.")
         decision=self.policy.evaluate(request.action); status="blocked" if not decision.allowed else ("awaiting_approval" if decision.requires_approval else "ready")
         plan=CommandPlan(id=secrets.token_urlsafe(18),device_id=request.device_id,action=request.action,parameters=request.parameters,risk=decision.risk,status=status,explanation=decision.reason,expires_at=datetime.now(timezone.utc)+timedelta(minutes=5)); self.plans[plan.id]=plan; return plan
     def approve(self,plan_id):
