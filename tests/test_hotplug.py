@@ -4,6 +4,7 @@ from usb_operator.registry import DeviceRegistry
 from usb_operator.services.hotplug import HotplugMonitor
 class FakeDiscovery:
  last_scan_transports={"serial"}
+ last_scan_errors={}
  async def scan(self): return []
 @pytest.mark.asyncio
 async def test_hotplug_marks_only_scanned_missing_devices_disconnected():
