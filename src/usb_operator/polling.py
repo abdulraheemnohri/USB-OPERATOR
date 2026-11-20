@@ -40,8 +40,8 @@ class PollRequest(BaseModel):
 class ReadOnlyPoller:
     def __init__(self, telemetry: TelemetryService, modbus_client=None, jsonl_client=None):
         self.telemetry = telemetry
-        self.modbus = modbus_client or ModbusTCPReadClient()
-        self.jsonl = jsonl_client or SerialJSONLClient()
+        self._modbus_override = modbus_client
+        self._jsonl_override = jsonl_client
 
     async def poll(self, device_id: str, request: PollRequest):
         device = self.telemetry.registry.get(device_id)
@@ -54,22 +54,24 @@ class ReadOnlyPoller:
             if device.transport != Transport.NETWORK or not device.location:
                 raise PermissionError("Modbus TCP requires a discovered network device with a configured host location")
             host, port = self._host_port(device.location)
+            client = self._modbus_override or ModbusTCPReadClient(timeout=request.timeout)
             for item in request.channels:
                 if item.address is None or item.channel is not None:
                     raise ValueError("Modbus channels require an explicit register address and no JSONL channel")
                 if item.register_index != 0:
                     raise ValueError("Single-register polling requires register_index=0")
-                result = await self.modbus.read_registers(host, port, request.unit_id, item.address, 1, item.function_code)
+                result = await client.read_registers(host, port, request.unit_id, item.address, 1, item.function_code)
                 raw = result.registers[0]
                 value = raw * item.scale + item.offset
                 samples.append(TelemetrySample(device_id=device_id, metric=item.metric, value=value, unit=item.unit, source="modbus_tcp"))
         else:
             if device.transport != Transport.SERIAL:
                 raise PermissionError("ESP32 JSONL polling requires a serial device")
+            client = self._jsonl_override or SerialJSONLClient(timeout=request.timeout)
             for item in request.channels:
                 if not item.channel or item.address is not None:
                     raise ValueError("ESP32 JSONL channels require an explicit channel name and no register address")
-                response = await self.jsonl.execute(device, "read", {"channel": item.channel})
+                response = await client.execute(device, "read", {"channel": item.channel})
                 data = response.get("data", {})
                 raw = data.get("value", data.get(item.channel))
                 if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(float(raw)):
