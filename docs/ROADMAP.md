@@ -11,7 +11,8 @@
 - [ ] Scheduled polling, profile-bound device identity and Modbus RTU bridge.
 - [ ] Live read-only device API integration after verified identity/profile binding.
 - [x] Telemetry threshold rules, alert deduplication, acknowledgement and automatic resolution.
-- [ ] External alert delivery (email/webhook) and dashboard charts.
+- [x] React Alert Center, threshold rule controls and telemetry history line chart.
+- [ ] External alert delivery (email/webhook) and alert notification preferences.
 - [ ] Signed profiles, trust/key rotation and verified hardware identity binding.
 - [ ] Camera capture, storage inventory and additional sensor adapters.
 - [ ] Secure multi-host agents, TLS pairing and role-based access.

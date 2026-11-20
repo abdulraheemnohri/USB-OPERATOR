@@ -20,10 +20,10 @@ async def lifespan(app):
     await monitor.start()
     yield
     await monitor.stop()
-app=FastAPI(title="USB-OPERATOR API",version="0.9.0",description="Policy-governed universal physical-device operator.",lifespan=lifespan)
+app=FastAPI(title="USB-OPERATOR API",version="0.10.0",description="Policy-governed universal physical-device operator.",lifespan=lifespan)
 app.add_middleware(CORSMiddleware,allow_origins=list(settings.cors_origins),allow_credentials=False,allow_methods=["GET","POST"],allow_headers=["*","X-Operator-Token"])
 @app.get("/health")
-async def health(): return {"status":"ok","service":"usb-operator","version":"0.8.0"}
+async def health(): return {"status":"ok","service":"usb-operator","version":"0.10.0"}
 @app.get("/v1/devices")
 async def list_devices(): return {"devices":[d.model_dump(mode="json") for d in registry.list()]}
 @app.post("/v1/discovery/scan",dependencies=[Depends(require_remote_token)])

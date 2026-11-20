@@ -2,7 +2,7 @@
 
 Universal Physical Device AI Operating Platform. Local-first discovery, governed command planning, telemetry ingestion, hardware adapters and operator tooling.
 
-**Status: v0.9.0 development foundation.** Not a production-ready universal hardware controller. Live device actuation remains disabled; simulator execution is available for demos.
+**Status: v0.10.0 development foundation.** Not a production-ready universal hardware controller. Live device actuation remains disabled; simulator execution is available for demos.
 
 ## Implemented
 - FastAPI backend, React/Vite dashboard and CLI host agent.
@@ -51,3 +51,8 @@ Open http://127.0.0.1:8765/docs. Dashboard: cd frontend; npm install; npm run de
 Unknown actions are denied. Selected writes require operator approval; critical actions are blocked. Independent hardware interlocks and emergency stops remain mandatory. Do not expose beyond loopback without strong authentication, TLS, firewalling and security review. Audit hashes are tamper-evident, not tamper-proof. Telemetry is not a safety interlock.
 
 See docs/ALERT_RULES.md, docs/POLLING_BRIDGE.md, docs/TELEMETRY.md, docs/INDUSTRIAL_PROTOCOLS.md, docs/ARCHITECTURE.md and docs/SAFETY.md.
+
+
+## v0.10.0 Dashboard
+
+The React dashboard includes an Alert Center for threshold rules, acknowledgement and status filtering, plus an SVG telemetry history chart. See docs/DASHBOARD_ALERTS.md. Alerts are monitoring-only and are not safety-rated interlocks.
