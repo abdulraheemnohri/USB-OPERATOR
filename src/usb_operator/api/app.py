@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI,HTTPException,Depends,Query
 from fastapi.middleware.cors import CORSMiddleware
 from ..config import settings
@@ -5,19 +6,31 @@ from ..models import CommandRequest
 from ..policy import SafetyPolicy
 from ..registry import DeviceRegistry
 from ..storage import SQLiteStore
+from ..profiles import ProfileStore
 from ..services.discovery import DiscoveryService
 from ..services.commands import CommandService
+from ..services.hotplug import HotplugMonitor
 from .security import require_remote_token
-store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry,enable_ble=settings.enable_ble); commands=CommandService(registry,policy,audit=store)
-app=FastAPI(title="USB-OPERATOR API",version="0.3.0",description="Policy-governed universal physical-device operator.")
+store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry,enable_ble=settings.enable_ble); commands=CommandService(registry,policy,audit=store); profiles=ProfileStore(settings.profiles_dir); monitor=HotplugMonitor(discovery,registry,store,settings.hotplug_interval)
+@asynccontextmanager
+async def lifespan(app):
+    await monitor.start()
+    yield
+    await monitor.stop()
+app=FastAPI(title="USB-OPERATOR API",version="0.4.0",description="Policy-governed universal physical-device operator.",lifespan=lifespan)
 app.add_middleware(CORSMiddleware,allow_origins=list(settings.cors_origins),allow_credentials=False,allow_methods=["GET","POST"],allow_headers=["*","X-Operator-Token"])
 @app.get("/health")
-async def health(): return {"status":"ok","service":"usb-operator","version":"0.3.0"}
+async def health(): return {"status":"ok","service":"usb-operator","version":"0.4.0"}
 @app.get("/v1/devices")
 async def list_devices(): return {"devices":[d.model_dump(mode="json") for d in registry.list()]}
 @app.post("/v1/discovery/scan",dependencies=[Depends(require_remote_token)])
 async def scan_devices():
-    devices=await discovery.scan(); store.record("discovery.completed",{"count":len(devices),"device_ids":[d.id for d in devices]}); return {"count":len(devices),"devices":[d.model_dump(mode="json") for d in devices]}
+    try: return await monitor.scan_once()
+    except Exception as e: raise HTTPException(500,"Discovery scan failed.") from e
+@app.get("/v1/monitor")
+async def monitor_status(): return monitor.status()
+@app.get("/v1/profiles")
+async def list_profiles(): return profiles.list()
 @app.get("/v1/policy")
 async def get_policy(): return policy.public_config()
 @app.get("/v1/audit",dependencies=[Depends(require_remote_token)])

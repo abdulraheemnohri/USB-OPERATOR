@@ -6,7 +6,7 @@ class USBAdapter(DeviceAdapter):
     async def discover(self):
         def scan():
             try: import usb.core
-            except ImportError: return []
+            except ImportError as exc: raise RuntimeError("USB discovery requires the optional 'usb' extra.") from exc
             result=[]
             for d in usb.core.find(find_all=True) or []:
                 vid,pid=int(d.idVendor),int(d.idProduct)

@@ -1,15 +1,7 @@
-# Device Profiles
+# Device profile manifests
 
-A device profile is a declarative contract between an identified device and an adapter. Profiles must be reviewed before use and must never be generated directly into a live control path.
+Profiles are strict JSON manifests validated by Pydantic. Unknown fields, undeclared actions, duplicate capabilities, unsafe read-only approval combinations and invalid ranges are rejected. The API only lists profiles; it does not activate them or bind them to live hardware.
 
-Required fields for a production profile:
-- stable profile ID and version;
-- supported VID/PID or vendor/product identity rules;
-- transport and protocol name/version;
-- explicit capabilities and action schemas;
-- risk class, approval requirements and numeric limits;
-- command timeout, retry policy and rate limit;
-- safe-state behavior and verification/read-back operation;
-- firmware compatibility and profile signature metadata.
+Each profile should declare a stable ID/version, transport, protocol, identity hints, capabilities and action metadata. Profiles in the sample directory remain disabled. A profile is not a driver: production activation still requires a reviewed protocol adapter, explicit physical limits, timeouts, read-back verification and hardware-in-the-loop tests.
 
-The example profile is documentation/demo metadata only. It does not enable live GPIO writes.
+The current loader reads JSON files from USB_OPERATOR_PROFILES_DIR (default examples/profiles). Do not load profile directories writable by untrusted users.

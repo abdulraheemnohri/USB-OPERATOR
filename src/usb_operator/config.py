@@ -9,5 +9,7 @@ class Settings:
     policy_mode:str=os.getenv("USB_OPERATOR_POLICY","policy")
     remote_token:str=os.getenv("USB_OPERATOR_REMOTE_TOKEN","")
     enable_ble:bool=os.getenv("USB_OPERATOR_ENABLE_BLE","false").lower() in {"1","true","yes"}
+    hotplug_interval:float=max(2.0,float(os.getenv("USB_OPERATOR_HOTPLUG_INTERVAL","5")))
+    profiles_dir:str=os.getenv("USB_OPERATOR_PROFILES_DIR","examples/profiles")
     cors_origins:tuple[str,...]=tuple(x.strip() for x in os.getenv("USB_OPERATOR_CORS","http://localhost:5173").split(",") if x.strip())
 settings=Settings()

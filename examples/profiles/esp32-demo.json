@@ -5,10 +5,10 @@
   "transport": "serial",
   "protocol": "usb-operator-jsonl-demo/1",
   "identity": { "vendor_id": null, "product_id": null, "manufacturer_contains": "Espressif" },
-  "capabilities": ["identify", "status", "read"],
+  "capabilities": ["identify", "status", "read", "gpio_set"],
   "actions": {
     "status": { "risk": "low", "approval": false, "read_only": true },
-    "gpio_set": { "risk": "high", "approval": true, "read_only": false, "pin_min": 0, "pin_max": 39 }
+    "gpio_set": { "risk": "high", "approval": true, "read_only": false, "pin_min": 0, "pin_max": 39, "timeout_ms": 1000 }
   },
   "enabled": false,
   "note": "Example only. Disabled until firmware protocol, board pin map, safety limits and hardware tests are reviewed."

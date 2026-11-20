@@ -9,8 +9,10 @@
 - [x] Hash-chained audit events and integrity verification endpoint.
 - [x] Read-only HID enumeration adapter.
 - [x] Optional BLE advertisement discovery (opt-in; no pairing or writes).
-- [ ] Persistent signed device profiles and plugin validation.
-- [ ] Hot-plug monitoring per operating system.
+- [x] Cross-platform polling hot-plug monitor with per-adapter failure isolation.
+- [x] Strict device profile manifest validation and diagnostics endpoint (profiles inert by default).
+- [ ] Signed device profiles and trust/key rotation.
+- [ ] Native OS event-driven hot-plug backends.
 - [ ] Typed ESP32/Arduino serial protocol and sample firmware.
 - [ ] Modbus RTU/TCP and SCPI read-only integrations.
 - [ ] Camera capture and sensor adapters with permission controls.

@@ -7,11 +7,9 @@ class HIDAdapter(DeviceAdapter):
     async def discover(self):
         def scan():
             try: import hid
-            except ImportError: return []
+            except ImportError as exc: raise RuntimeError("HID discovery requires the optional 'hid' extra.") from exc
             found=[]
-            try: items=hid.enumerate()
-            except Exception: return []
-            for item in items:
+            for item in hid.enumerate():
                 vid=int(item.get("vendor_id") or 0); pid=int(item.get("product_id") or 0); path=item.get("path")
                 path_text=path.decode(errors="replace") if isinstance(path,bytes) else str(path or "unknown")
                 serial=item.get("serial_number") or None; product=item.get("product_string") or "HID device"
