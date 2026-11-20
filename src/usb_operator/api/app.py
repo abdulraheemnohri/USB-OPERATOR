@@ -10,17 +10,18 @@ from ..profiles import ProfileStore
 from ..services.discovery import DiscoveryService
 from ..services.commands import CommandService
 from ..services.hotplug import HotplugMonitor
+from ..telemetry import TelemetryBatch,TelemetryService
 from .security import require_remote_token
-store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry,enable_ble=settings.enable_ble); commands=CommandService(registry,policy,audit=store); profiles=ProfileStore(settings.profiles_dir); monitor=HotplugMonitor(discovery,registry,store,settings.hotplug_interval)
+store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry,enable_ble=settings.enable_ble); commands=CommandService(registry,policy,audit=store); profiles=ProfileStore(settings.profiles_dir); monitor=HotplugMonitor(discovery,registry,store,settings.hotplug_interval); telemetry=TelemetryService(registry,store)
 @asynccontextmanager
 async def lifespan(app):
     await monitor.start()
     yield
     await monitor.stop()
-app=FastAPI(title="USB-OPERATOR API",version="0.4.0",description="Policy-governed universal physical-device operator.",lifespan=lifespan)
+app=FastAPI(title="USB-OPERATOR API",version="0.7.0",description="Policy-governed universal physical-device operator.",lifespan=lifespan)
 app.add_middleware(CORSMiddleware,allow_origins=list(settings.cors_origins),allow_credentials=False,allow_methods=["GET","POST"],allow_headers=["*","X-Operator-Token"])
 @app.get("/health")
-async def health(): return {"status":"ok","service":"usb-operator","version":"0.4.0"}
+async def health(): return {"status":"ok","service":"usb-operator","version":"0.7.0"}
 @app.get("/v1/devices")
 async def list_devices(): return {"devices":[d.model_dump(mode="json") for d in registry.list()]}
 @app.post("/v1/discovery/scan",dependencies=[Depends(require_remote_token)])
@@ -33,6 +34,20 @@ async def monitor_status(): return monitor.status()
 async def list_profiles(): return profiles.list()
 @app.get("/v1/policy")
 async def get_policy(): return policy.public_config()
+@app.post("/v1/telemetry/ingest",dependencies=[Depends(require_remote_token)])
+async def ingest_telemetry(batch:TelemetryBatch):
+    try: return telemetry.ingest(batch)
+    except LookupError as e: raise HTTPException(404,str(e)) from e
+    except PermissionError as e: raise HTTPException(403,str(e)) from e
+    except ValueError as e: raise HTTPException(422,str(e)) from e
+@app.get("/v1/telemetry/latest")
+async def latest_telemetry(device_id:str|None=None,limit:int=Query(default=100,ge=1,le=500)):
+    if device_id and not registry.get(device_id): raise HTTPException(404,"Device not found.")
+    return {"samples":telemetry.latest(device_id,limit)}
+@app.get("/v1/telemetry/history/{device_id}")
+async def telemetry_history(device_id:str,metric:str|None=None,limit:int=Query(default=100,ge=1,le=1000)):
+    if not registry.get(device_id): raise HTTPException(404,"Device not found.")
+    return {"samples":telemetry.history(device_id,metric,limit)}
 @app.get("/v1/audit",dependencies=[Depends(require_remote_token)])
 async def get_audit(limit:int=Query(default=100,ge=1,le=500)): return {"events":store.list_audit(limit),"integrity":store.verify_audit()}
 @app.post("/v1/commands/plan",dependencies=[Depends(require_remote_token)])

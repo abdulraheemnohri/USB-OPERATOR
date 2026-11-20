@@ -1,21 +1,21 @@
 # Roadmap
 
 - [x] Core API, device models, registry and policy gateway.
-- [x] USB descriptor and serial discovery; read-only HID and optional BLE discovery.
-- [x] Simulator, approval-gated command planning and React dashboard foundation.
-- [x] SQLite inventory persistence, hash-chained audit and polling hot-plug monitor.
-- [x] Strict device profile manifest validation; profiles remain inert.
-- [x] Read-only JSONL serial protocol client and ESP32 firmware example (not connected to live command API).
-- [x] Read-only Modbus TCP/RTU protocol primitives with bounds, transaction and CRC validation (not live-bound).
-- [x] Allowlisted read-only SCPI serial query helper (not live-bound).
+- [x] USB, serial, read-only HID and optional BLE discovery.
+- [x] Simulator, approval-gated command planning and dashboard foundation.
+- [x] SQLite inventory, hash-chained audit and polling hot-plug monitor.
+- [x] Inert validated device profile manifests.
+- [x] Read-only JSONL/ESP32, Modbus TCP/RTU and SCPI protocol foundations.
+- [x] Validated telemetry ingestion, SQLite retention (10,000 samples) and history query API.
+- [ ] Physical sensor polling and protocol-to-telemetry adapters.
+- [ ] Live read-only device API integration after verified identity/profile binding.
+- [ ] Telemetry threshold rules, alert delivery and dashboard charts.
 - [ ] Signed profiles, trust/key rotation and verified hardware identity binding.
-- [ ] Profile-driven, operator-approved live serial read-only API integration.
-- [ ] Modbus device profiles, register maps, scaling and hardware-in-the-loop tests.
-- [ ] Camera capture, sensor adapters and permission controls.
-- [ ] Remote host-agent pairing, TLS and role-based access.
-- [ ] Android USB permission flow and authenticated host connection.
+- [ ] Camera capture, storage inventory and additional sensor adapters.
+- [ ] Secure multi-host agents, TLS pairing and role-based access.
+- [ ] Complete Android USB permission flow and authenticated host connection.
 - [ ] iOS paired-host dashboard with certificate validation.
 - [ ] PLC/robotics integrations with independent safety systems.
 - [ ] Signed release packages and platform installers.
 
-A checked item means code exists in the repository; it does not imply certification or production hardware validation.
+A checked item means code exists in the repository; it does not imply certification or physical hardware validation.
