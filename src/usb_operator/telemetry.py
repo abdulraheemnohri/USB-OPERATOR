@@ -37,7 +37,12 @@ class TelemetryService:
             if device.state.value not in {"connected","simulated"}: raise PermissionError("Telemetry from disconnected/degraded devices is rejected")
             if sample.recorded_at>now+timedelta(minutes=5): raise ValueError("Telemetry timestamp is too far in the future")
             validated.append(sample)
-        accepted=[self.store.record_telemetry(sample.model_dump(mode="json")) for sample in validated]
-        return {"accepted":len(accepted),"samples":accepted}
+        accepted=[]
+        opened_alerts=[]
+        for sample in validated:
+            payload=sample.model_dump(mode="json")
+            accepted.append(self.store.record_telemetry(payload))
+            opened_alerts.extend(self.store.evaluate_alert_rules(payload))
+        return {"accepted":len(accepted),"samples":accepted,"opened_alerts":opened_alerts}
     def latest(self,device_id:str|None=None,limit:int=100): return self.store.latest_telemetry(device_id,limit)
     def history(self,device_id:str,metric:str|None=None,limit:int=100): return self.store.query_telemetry(device_id,metric,limit)

@@ -12,14 +12,15 @@ from ..services.commands import CommandService
 from ..services.hotplug import HotplugMonitor
 from ..telemetry import TelemetryBatch,TelemetryService
 from ..polling import PollRequest,ReadOnlyPoller
+from ..alerts import AlertRuleCreate,RuleEnabled,AlertService
 from .security import require_remote_token
-store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry,enable_ble=settings.enable_ble); commands=CommandService(registry,policy,audit=store); profiles=ProfileStore(settings.profiles_dir); monitor=HotplugMonitor(discovery,registry,store,settings.hotplug_interval); telemetry=TelemetryService(registry,store); poller=ReadOnlyPoller(telemetry)
+store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry,enable_ble=settings.enable_ble); commands=CommandService(registry,policy,audit=store); profiles=ProfileStore(settings.profiles_dir); monitor=HotplugMonitor(discovery,registry,store,settings.hotplug_interval); telemetry=TelemetryService(registry,store); poller=ReadOnlyPoller(telemetry); alerts=AlertService(registry,store)
 @asynccontextmanager
 async def lifespan(app):
     await monitor.start()
     yield
     await monitor.stop()
-app=FastAPI(title="USB-OPERATOR API",version="0.8.0",description="Policy-governed universal physical-device operator.",lifespan=lifespan)
+app=FastAPI(title="USB-OPERATOR API",version="0.9.0",description="Policy-governed universal physical-device operator.",lifespan=lifespan)
 app.add_middleware(CORSMiddleware,allow_origins=list(settings.cors_origins),allow_credentials=False,allow_methods=["GET","POST"],allow_headers=["*","X-Operator-Token"])
 @app.get("/health")
 async def health(): return {"status":"ok","service":"usb-operator","version":"0.8.0"}
@@ -56,6 +57,27 @@ async def poll_device_telemetry(device_id:str,request:PollRequest):
     except PermissionError as e: raise HTTPException(403,str(e)) from e
     except ValueError as e: raise HTTPException(422,str(e)) from e
     except (OSError,TimeoutError,RuntimeError) as e: raise HTTPException(502,"Read-only device polling failed.") from e
+
+@app.post("/v1/alerts/rules",dependencies=[Depends(require_remote_token)])
+async def create_alert_rule(rule:AlertRuleCreate):
+    try: return alerts.create_rule(rule)
+    except LookupError as e: raise HTTPException(404,str(e)) from e
+    except ValueError as e: raise HTTPException(422,str(e)) from e
+@app.get("/v1/alerts/rules")
+async def list_alert_rules(device_id:str|None=None):
+    if device_id and not registry.get(device_id): raise HTTPException(404,"Device not found.")
+    return {"rules":alerts.list_rules(device_id)}
+@app.post("/v1/alerts/rules/{rule_id}/enabled",dependencies=[Depends(require_remote_token)])
+async def set_alert_rule_enabled(rule_id:int,body:RuleEnabled):
+    try: return alerts.set_enabled(rule_id,body.enabled)
+    except LookupError as e: raise HTTPException(404,str(e)) from e
+@app.get("/v1/alerts")
+async def list_alerts(status:str|None=Query(default=None,pattern="^(active|acknowledged|resolved)$"),limit:int=Query(default=100,ge=1,le=500)):
+    return {"alerts":alerts.list_alerts(status,limit)}
+@app.post("/v1/alerts/{alert_id}/acknowledge",dependencies=[Depends(require_remote_token)])
+async def acknowledge_alert(alert_id:int):
+    try: return alerts.acknowledge(alert_id)
+    except LookupError as e: raise HTTPException(404,str(e)) from e
 @app.get("/v1/audit",dependencies=[Depends(require_remote_token)])
 async def get_audit(limit:int=Query(default=100,ge=1,le=500)): return {"events":store.list_audit(limit),"integrity":store.verify_audit()}
 @app.post("/v1/commands/plan",dependencies=[Depends(require_remote_token)])
