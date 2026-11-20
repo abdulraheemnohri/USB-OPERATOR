@@ -2,7 +2,7 @@
 
 Universal Physical Device AI Operating Platform. Local-first device discovery, governed command planning, hardware adapters and remote operator foundations.
 
-**Status: v0.4.0 development foundation.** This is not a production-ready universal hardware controller. Live device actuation remains disabled; simulator execution is available for demos.
+**Status: v0.5.0 development foundation.** This is not a production-ready universal hardware controller. Live device actuation remains disabled; simulator execution is available for demos.
 
 ## Implemented
 - FastAPI backend, React/Vite dashboard and CLI host agent.
@@ -11,9 +11,10 @@ Universal Physical Device AI Operating Platform. Local-first device discovery, g
 - SQLite device inventory persistence and hash-chained audit integrity checks.
 - Background cross-platform polling monitor for device arrival/departure.
 - Strict JSON device profile validation and profile listing; profiles remain inert and disabled.
+- Strict read-only JSONL serial protocol client and ESP32 Arduino firmware example.
 - Simulated ESP32 / Modbus meter, device registry and capability checks.
 - Default-deny policy, expiring command plans and approval workflow.
-- Optional OpenAI-compatible local/remote AI proposal adapter; AI cannot execute hardware actions.
+- Optional OpenAI-compatible local/remote AI proposal adapter; AI cannot execute hardware commands.
 - Android USB OTG enumeration scaffold and iOS paired-host dashboard scaffold.
 - Pytest and GitHub Actions CI.
 
@@ -47,7 +48,7 @@ BLE discovery is opt-in: set USB_OPERATOR_ENABLE_BLE=true before starting the se
 | Interface | Status |
 |---|---|
 | USB descriptors | Read-only discovery |
-| Serial / ESP32 / Arduino | Port discovery; firmware protocol adapter pending |
+| Serial / ESP32 / Arduino | Port discovery + standalone read-only JSONL client/firmware example; API control not enabled |
 | HID | Read-only enumeration |
 | BLE | Optional advertisement discovery; no pairing/control |
 | Wi-Fi / Ethernet | Planned host-agent transport |
@@ -63,4 +64,4 @@ Unknown actions are denied. Read-only actions can run automatically. Selected wr
 ## Mobile and multi-computer
 The host agent targets Windows, Linux and macOS. Android needs native USB Host permissions for direct OTG access; iOS generic USB host access is limited and the companion primarily connects to a paired host agent. Multi-computer control will use authenticated agents, each enforcing its own local policy.
 
-See docs/ARCHITECTURE.md, docs/SAFETY.md, docs/MOBILE.md, docs/PERSISTENCE_AND_AUDIT.md, docs/DEVICE_PROFILES.md, docs/HOTPLUG.md and docs/ROADMAP.md.
+See docs/ARCHITECTURE.md, docs/SAFETY.md, docs/MOBILE.md, docs/PERSISTENCE_AND_AUDIT.md, docs/DEVICE_PROFILES.md, docs/HOTPLUG.md, and docs/ESP32_JSONL_PROTOCOL.md.

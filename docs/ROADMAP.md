@@ -11,9 +11,10 @@
 - [x] Optional BLE advertisement discovery (opt-in; no pairing or writes).
 - [x] Cross-platform polling hot-plug monitor with per-adapter failure isolation.
 - [x] Strict device profile manifest validation and diagnostics endpoint (profiles inert by default).
+- [x] Strict read-only JSONL serial protocol client and ESP32 firmware example (not wired to live command API).
 - [ ] Signed device profiles and trust/key rotation.
 - [ ] Native OS event-driven hot-plug backends.
-- [ ] Typed ESP32/Arduino serial protocol and sample firmware.
+- [ ] Reviewed profile-to-device identity binding and live read-only serial API integration.
 - [ ] Modbus RTU/TCP and SCPI read-only integrations.
 - [ ] Camera capture and sensor adapters with permission controls.
 - [ ] Remote host agent pairing, TLS and role-based access.
