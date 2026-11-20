@@ -1,73 +1,62 @@
 # USB-OPERATOR
 
-**Universal Physical Device AI Operating Platform** — local-first device discovery, governed command planning, hardware adapters and remote operator foundations.
+Universal Physical Device AI Operating Platform. Local-first device discovery, governed command planning, hardware adapters and remote operator foundations.
 
-> Status: v0.2.0 development foundation. This repository is not yet a production-ready universal hardware controller. Live control is intentionally limited; the included simulator is safe for demos.
+**Status: v0.3.0 development foundation.** This is not yet a production-ready universal hardware controller. Live device actuation remains disabled; simulator execution is available for demos.
 
-## What exists now
-- FastAPI backend and React/Vite dashboard.
-- Read-only USB descriptor discovery (optional PyUSB/libusb) and serial-port discovery.
-- Device registry and simulated ESP32 / Modbus meter.
-- Policy engine: default deny, read-only allowlist, explicit approvals for selected writes, hard blocks for critical actions.
-- Command planning with expiring plans and approval workflow.
-- Optional OpenAI-compatible local/remote AI proposal adapter. AI proposals do not execute hardware commands.
-- Pytest unit tests for policy and simulated command execution.
+## Implemented
+- FastAPI backend, React/Vite dashboard and CLI host agent.
+- USB descriptor and serial-port discovery; optional read-only HID enumeration.
+- Optional BLE advertisement discovery (disabled by default; no pairing or writes).
+- SQLite device inventory persistence and hash-chained audit event integrity checks.
+- Simulated ESP32 / Modbus meter, device registry and capability checks.
+- Default-deny policy, expiring command plans and approval workflow.
+- Optional OpenAI-compatible local/remote AI proposal adapter; AI cannot execute hardware actions.
+- Android USB OTG enumeration scaffold and iOS paired-host dashboard scaffold.
+- Pytest and GitHub Actions CI.
 
-## Quick start (Windows PowerShell)
-```powershell
-py -3.11 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install -e ".[dev,usb]"
-usb-operator serve
-```
-Open http://127.0.0.1:8765/docs. In another terminal:
-```powershell
-cd frontend
-npm install
-npm run dev
-```
+## Quick start — Windows PowerShell
+    py -3.11 -m venv .venv
+    .\\.venv\\Scripts\\Activate.ps1
+    python -m pip install -e ".[dev,usb,hid,ble,ai]"
+    usb-operator serve
 
-## Quick start (Linux / macOS)
-```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e ".[dev,usb]"
-usb-operator serve
-```
-Then run the frontend with `cd frontend && npm install && npm run dev`.
+Open http://127.0.0.1:8765/docs. In another terminal: cd frontend; npm install; npm run dev.
+
+## Quick start — Linux / macOS
+    python3.11 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install -e ".[dev,usb,hid,ble,ai]"
+    usb-operator serve
+
+BLE discovery is opt-in: set USB_OPERATOR_ENABLE_BLE=true before starting the service. Install Bluetooth system dependencies and grant OS Bluetooth permissions first.
 
 ## API
-- `GET /health`
-- `GET /v1/devices`
-- `POST /v1/discovery/scan`
-- `GET /v1/policy`
-- `POST /v1/commands/plan`
-- `POST /v1/commands/{plan_id}/approve`
-- `POST /v1/commands/{plan_id}/execute`
+- GET /health, GET /v1/devices, GET /v1/policy
+- POST /v1/discovery/scan
+- GET /v1/audit?limit=100 (includes hash-chain verification)
+- POST /v1/commands/plan
+- POST /v1/commands/{plan_id}/approve
+- POST /v1/commands/{plan_id}/execute
 
-## Hardware support status
-| Interface | Current status |
+## Support status
+| Interface | Status |
 |---|---|
-| USB descriptors | Optional PyUSB discovery, read-only |
-| Serial / ESP32 / Arduino | Serial-port discovery; device firmware protocol still required |
-| HID | Dependency slot / adapter planned |
-| BLE / Wi-Fi / Ethernet | Architecture planned; not implemented as device drivers |
-| Camera / GPIO / storage | Planned adapters; not enabled for live operation |
-| Modbus / SCPI / robotics | Planned protocol adapters; no live actuation yet |
-| Simulator | Implemented demo devices and simulated commands |
+| USB descriptors | Read-only discovery |
+| Serial / ESP32 / Arduino | Port discovery; protocol adapter and firmware pending |
+| HID | Read-only enumeration |
+| BLE | Optional advertisement discovery; no pairing/control |
+| Wi-Fi / Ethernet | Planned host-agent transport |
+| Cameras / sensors / storage | Planned, not live-enabled |
+| Modbus / SCPI / robotics / PLC | Planned, not live-enabled |
+| Simulator | Demo commands; never physical actuation |
 
-USB enumeration and control are different capabilities. A VID/PID does not prove what a device can safely do. Device profiles must explicitly define protocol, commands, parameter schemas, limits and verification behavior.
+USB enumeration is not device control. A VID/PID does not establish protocol or safe operating limits. Each live adapter needs an independently reviewed device profile, parameter schema, physical limits, timeout, read-back verification and hardware-in-the-loop tests.
 
-## Safety model
-- Default-deny for unknown actions.
-- Read-only actions may run automatically.
-- Actuating / writing actions require an operator approval.
-- Critical actions are blocked in the default policy.
-- Hardware emergency stops, fuses, contactors, safety PLCs and interlocks remain independent of this software.
-- Do not expose the API to a network without authentication, TLS, firewall rules and a security review. Default bind is loopback.
+## Safety
+Unknown actions are denied. Read-only actions can run automatically. Selected writes require operator approval. Critical actions are blocked. Independent hardware interlocks and emergency stops remain mandatory. Do not expose the API beyond loopback without authentication, TLS, firewalling and a security review. The hash chain is tamper-evident, not tamper-proof.
 
-## Cross-platform and mobile strategy
-The Python host agent is intended for Windows, Linux and macOS. Android requires a native USB Host/OTG companion and explicit Android USB permission. iOS cannot offer unrestricted generic USB access; use supported accessory protocols and network-connected host agents. Mobile clients should connect to an authenticated host agent, not assume direct access to every USB class.
+## Mobile and multi-computer
+The host agent targets Windows, Linux and macOS. Android needs native USB Host permissions for direct OTG access; iOS generic USB host access is limited and the companion primarily connects to a paired host agent. Multi-computer control will use authenticated agents, each enforcing its own local policy.
 
-## Development
-See [ARCHITECTURE.md](docs/ARCHITECTURE.md), [SAFETY.md](docs/SAFETY.md), [MOBILE.md](docs/MOBILE.md), and [ROADMAP.md](docs/ROADMAP.md).
+See docs/ARCHITECTURE.md, docs/SAFETY.md, docs/MOBILE.md, docs/PERSISTENCE_AND_AUDIT.md and docs/ROADMAP.md.

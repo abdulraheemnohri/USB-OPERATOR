@@ -8,7 +8,7 @@ from ..storage import SQLiteStore
 from ..services.discovery import DiscoveryService
 from ..services.commands import CommandService
 from .security import require_remote_token
-store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry); commands=CommandService(registry,policy,audit=store)
+store=SQLiteStore(settings.database_path); registry=DeviceRegistry(store=store); policy=SafetyPolicy(); discovery=DiscoveryService(registry,enable_ble=settings.enable_ble); commands=CommandService(registry,policy,audit=store)
 app=FastAPI(title="USB-OPERATOR API",version="0.3.0",description="Policy-governed universal physical-device operator.")
 app.add_middleware(CORSMiddleware,allow_origins=list(settings.cors_origins),allow_credentials=False,allow_methods=["GET","POST"],allow_headers=["*","X-Operator-Token"])
 @app.get("/health")
